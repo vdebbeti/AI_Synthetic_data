@@ -1,5 +1,6 @@
 import csv
 from collections import Counter
+from datetime import datetime
 from pathlib import Path
 
 from sdtm_adam_compiler.schemas.ir_schema import CompilerIR, DatasetPlan, VariableRule
@@ -17,11 +18,31 @@ def _parse_hardcode(expr: str) -> str:
     return text
 
 
+def _parse_iso_date(value: str) -> datetime | None:
+    try:
+        return datetime.strptime(value[:10], "%Y-%m-%d")
+    except (TypeError, ValueError):
+        return None
+
+
 def _apply_var_rule(row: dict, rule: VariableRule) -> str:
     if not rule.derivation:
         return ""
     if rule.derivation.kind == "hardcode":
         return _parse_hardcode(rule.derivation.expression)
+    if rule.derivation.kind == "derive" and rule.derivation.expression == "severity_grade_from_aesev":
+        severity = str(row.get("AESEV", "")).upper()
+        return {"MILD": "1", "MODERATE": "2", "SEVERE": "3"}.get(severity, "")
+    if rule.derivation.kind == "derive" and rule.derivation.expression == "uppercase_term":
+        return str(row.get("AETERM", "")).upper()
+    if rule.derivation.kind == "date_transform" and rule.derivation.expression == "inclusive_duration_days":
+        start = _parse_iso_date(str(row.get("AESTDTC", "")))
+        end = _parse_iso_date(str(row.get("AEENDTC", "")))
+        if not start or not end:
+            return ""
+        return str((end - start).days + 1)
+    if rule.derivation.kind == "conditional" and rule.derivation.expression == "serious_severe_death_flag":
+        return "Y" if str(row.get("AESER", "")).upper() == "Y" and str(row.get("AESEV", "")).upper() == "SEVERE" else "N"
     if rule.derivation.sources:
         return row.get(rule.derivation.sources[0], "")
     return row.get(rule.target_variable, "")

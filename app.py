@@ -16,6 +16,7 @@ from sdtm_adam_compiler.orchestration.ai_compile import run_compile_pipeline
 from sdtm_adam_compiler.renderers.sas_renderer import render_sas
 from sdtm_adam_compiler.renderers.r_renderer import render_r
 from sdtm_adam_compiler.eval.runner import run_case
+from sdtm_adam_compiler.parsers.spec_parser import load_spec_csv
 
 
 SPEC_CONFIG = {
@@ -57,6 +58,19 @@ def _render_workflow(spec_type: str) -> None:
             st.markdown(f"**{num}. {title}**")
             st.caption(body)
     st.info(f"{cfg['source_note']} {cfg['output_note']}")
+
+
+def _case_dataset_options(case_path: Path, spec_type: str) -> list[str]:
+    case = json.loads(case_path.read_text(encoding="utf-8"))
+    root = case_path.parents[2] if len(case_path.parents) >= 3 else ROOT
+    expected = {e["dataset"].upper() for e in case.get("expected_outputs", [])}
+    datasets: set[str] = set()
+    for spec in case.get("spec_inputs", []):
+        if spec.get("type") != spec_type:
+            continue
+        rows = load_spec_csv(root / spec["path"])
+        datasets.update(row["target"].upper() for row in rows if row.get("target"))
+    return sorted(datasets & expected)
 
 
 def _log_event(event: str, details: dict | None = None) -> None:
@@ -285,12 +299,32 @@ with tab_eval:
             options=case_files,
             format_func=lambda p: p.name,
         )
-        run_eval = st.button("Run Eval Case", type="primary", use_container_width=True)
+        eval_spec_type = st.radio("Standard to Evaluate", ["SDTM", "ADaM"], horizontal=True, index=0)
+        dataset_options = _case_dataset_options(selected_case, eval_spec_type)
+        if not dataset_options:
+            st.warning(f"No {eval_spec_type} datasets were found in this case.")
+            selected_dataset = None
+            run_eval = False
+        else:
+            selected_dataset = st.selectbox("Dataset to Evaluate", dataset_options)
+            run_eval = st.button("Run Eval Case", type="primary", use_container_width=True)
 
         if run_eval:
-            _log_event("eval_started", {"case": selected_case.name, "mode": "data_only"})
+            _log_event(
+                "eval_started",
+                {
+                    "case": selected_case.name,
+                    "mode": "data_only",
+                    "spec_type": eval_spec_type,
+                    "dataset": selected_dataset,
+                },
+            )
             try:
-                result = run_case(selected_case)
+                result = run_case(
+                    selected_case,
+                    spec_type_filter=eval_spec_type,
+                    dataset_filter=selected_dataset,
+                )
                 m1, m2, m3 = st.columns(3)
                 m1.metric("Checks", result["total_checks"])
                 m2.metric("Passed", result["passed_checks"])
@@ -303,6 +337,8 @@ with tab_eval:
                         "status": result["status"],
                         "pass_rate": result["pass_rate"],
                         "total_checks": result["total_checks"],
+                        "spec_type": eval_spec_type,
+                        "dataset": selected_dataset,
                     },
                 )
 
@@ -317,5 +353,14 @@ with tab_eval:
                             for issue in check["issues"]:
                                 st.write(f"- {issue}")
             except Exception as e:
-                _log_event("eval_failed", {"case": selected_case.name, "mode": "data_only", "error": str(e)})
+                _log_event(
+                    "eval_failed",
+                    {
+                        "case": selected_case.name,
+                        "mode": "data_only",
+                        "spec_type": eval_spec_type,
+                        "dataset": selected_dataset,
+                        "error": str(e),
+                    },
+                )
                 st.error(f"Eval failed: {e}")

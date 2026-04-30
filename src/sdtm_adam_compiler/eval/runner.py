@@ -12,7 +12,11 @@ def _load_csv(path: Path) -> list[dict]:
         return list(csv.DictReader(f))
 
 
-def run_case(case_path: str | Path) -> dict:
+def run_case(
+    case_path: str | Path,
+    spec_type_filter: str | None = None,
+    dataset_filter: str | None = None,
+) -> dict:
     case_file = Path(case_path)
     root = case_file.parents[2] if len(case_file.parents) >= 3 else Path(".")
     case = json.loads(case_file.read_text(encoding="utf-8"))
@@ -29,6 +33,10 @@ def run_case(case_path: str | Path) -> dict:
         working_registry.update(actual_outputs)
 
         for dataset in sorted(actual_outputs.keys()):
+            if spec_type_filter and spec["type"] != spec_type_filter:
+                continue
+            if dataset_filter and dataset != dataset_filter.upper():
+                continue
             if dataset not in expected_by_dataset:
                 continue
             exp = expected_by_dataset[dataset]

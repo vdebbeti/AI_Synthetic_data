@@ -48,7 +48,7 @@ The app includes:
 - A standard-specific workflow/schema guide
 - Standard-specific sample spec download
 - Generated SAS and R code download buttons
-- Eval tab to run golden cases and inspect per-dataset mismatch details
+- Eval tab to run scoped golden cases and inspect per-dataset mismatch details
 - Session event log with sidebar download
 
 Mode behavior:
@@ -59,4 +59,5 @@ Mode behavior:
 
 Execution eval behavior:
 - Eval compares deterministic compiled outputs to expected golden datasets.
+- Eval is scoped by standard and dataset, so an SDTM AE check reports only AE instead of every domain in the golden case.
 - Eval does not execute generated SAS/R code. Generated code should be reviewed and run in the user's controlled SAS/R environment.

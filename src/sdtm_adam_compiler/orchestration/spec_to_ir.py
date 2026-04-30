@@ -11,6 +11,14 @@ def _logic_to_derivation(logic: str, row: dict) -> DerivationRule:
     if text.startswith("hardcode"):
         expr = re.sub(r"(?i)^hardcode\s*", "", raw_logic).strip() or "''"
         return DerivationRule(kind="hardcode", expression=expr, sources=[])
+    if "severity grade" in text and "aesev" in text:
+        return DerivationRule(kind="derive", expression="severity_grade_from_aesev", sources=["AESEV"])
+    if "inclusive days" in text and "aestdtc" in text and "aeendtc" in text:
+        return DerivationRule(kind="date_transform", expression="inclusive_duration_days", sources=["AESTDTC", "AEENDTC"])
+    if "aesdth" in text and "aeser" in text and "aesev" in text:
+        return DerivationRule(kind="conditional", expression="serious_severe_death_flag", sources=["AESER", "AESEV"])
+    if "uppercase" in text and "aeterm" in text:
+        return DerivationRule(kind="derive", expression="uppercase_term", sources=["AETERM"])
     m = re.search(r"(?i)\bmap\s+(.+?)\s+to\s+", raw_logic)
     if m:
         src = m.group(1).strip()
