@@ -1,0 +1,7 @@
+source,target,variable,label,type,length,logic
+LB,ADLB,STUDYID,Study Identifier,char,20,Direct Map
+LB,ADLB,USUBJID,Unique Subject Identifier,char,40,Direct Map
+LB,ADLB,LBSEQ,Sequence Number,num,8,Direct Map
+LB,ADLB,PARAMCD,Parameter Code,char,8,Map LBTESTCD to PARAMCD
+LB,ADLB,AVAL,Analysis Value,num,8,Map LBORRES to AVAL
+LB,ADLB,ADT,Analysis Date,char,20,Map LBDTC to ADT

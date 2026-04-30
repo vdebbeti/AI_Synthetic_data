@@ -7,7 +7,12 @@
     },
     "AE": {
       "required_variables": ["STUDYID", "USUBJID", "AESEQ", "AETERM", "AESTDTC"]
+    },
+    "LB": {
+      "required_variables": ["STUDYID", "USUBJID", "LBSEQ", "LBTESTCD", "LBORRES", "LBDTC"]
+    },
+    "VS": {
+      "required_variables": ["STUDYID", "USUBJID", "VSSEQ", "VSTESTCD", "VSORRES", "VSDTC"]
     }
   }
 }
-

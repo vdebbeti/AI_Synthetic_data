@@ -42,7 +42,23 @@ The eval currently executes deterministic spec compilation over CSV raw inputs, 
 
 The app includes:
 - IG version selectors (`SDTMIG` and `ADaMIG`)
+- Routing modes (`deterministic`, `llm`, `consensus`)
+- Sidebar controls for provider/model/API key and temperatures
 - Upload spec CSV
 - `Download sample SDTM spec` button
 - `Download sample ADaM spec` button
 - Generated SAS and R code download buttons
+- Eval tab to run golden cases and inspect per-dataset mismatch details
+- Eval mode toggle: `data_only` vs `execute_generated_code`
+- Session event log with sidebar download
+
+Mode behavior:
+- `deterministic`: no LLM calls; uses parser + validators only.
+- `llm`: attempts LLM IR generation, then repair loop, then falls back to deterministic on failure.
+- `consensus`: same as `llm`, but explicitly designed to keep deterministic fallback as safety baseline.
+
+Execution eval behavior:
+- `data_only`: compares deterministic compiled outputs to expected golden datasets.
+- `execute_generated_code`: also attempts to run generated SAS/R code and reports runtime status/logs.
+  - If SAS or R runtimes are not installed on host, execution is marked `skipped` with reason.
+  - You can provide explicit runtime paths in the app sidebar (`SAS executable path`, `Rscript path`).

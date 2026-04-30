@@ -1,0 +1,22 @@
+{
+  "case_id": "lb_vs_adlb_v1",
+  "description": "Synthetic raw LB and VS to SDTM LB/VS and ADaM ADLB golden case",
+  "raw_inputs": [
+    {"dataset": "raw_lb", "path": "data/raw/raw_lb.csv"},
+    {"dataset": "raw_vs", "path": "data/raw/raw_vs.csv"}
+  ],
+  "spec_inputs": [
+    {"type": "SDTM", "path": "data/specs/sdtm_spec_lb_vs_v1.csv"},
+    {"type": "ADaM", "path": "data/specs/adam_spec_adlb_v1.csv"}
+  ],
+  "expected_outputs": [
+    {"dataset": "LB", "path": "data/expected/LB_expected.csv"},
+    {"dataset": "VS", "path": "data/expected/VS_expected.csv"},
+    {"dataset": "ADLB", "path": "data/expected/ADLB_expected.csv"}
+  ],
+  "assertions": {
+    "exact_column_match": true,
+    "exact_row_count_match": true,
+    "null_equals_blank": true
+  }
+}

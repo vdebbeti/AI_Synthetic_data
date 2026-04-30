@@ -7,7 +7,9 @@
     },
     "ADAE": {
       "required_variables": ["STUDYID", "USUBJID", "AESEQ", "TRTA", "SAFFL"]
+    },
+    "ADLB": {
+      "required_variables": ["STUDYID", "USUBJID", "LBSEQ", "PARAMCD", "AVAL"]
     }
   }
 }
-

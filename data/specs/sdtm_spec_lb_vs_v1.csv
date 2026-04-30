@@ -1,0 +1,15 @@
+source,target,variable,label,type,length,logic
+raw_lb,LB,STUDYID,Study Identifier,char,20,Direct Map
+raw_lb,LB,DOMAIN,Domain Abbreviation,char,2,Hardcode 'LB'
+raw_lb,LB,USUBJID,Unique Subject Identifier,char,40,Direct Map
+raw_lb,LB,LBSEQ,Sequence Number,num,8,Direct Map
+raw_lb,LB,LBTESTCD,Lab Test Short Name,char,8,Direct Map
+raw_lb,LB,LBORRES,Result or Finding in Original Units,char,40,Direct Map
+raw_lb,LB,LBDTC,Date/Time of Specimen Collection,char,20,Direct Map
+raw_vs,VS,STUDYID,Study Identifier,char,20,Direct Map
+raw_vs,VS,DOMAIN,Domain Abbreviation,char,2,Hardcode 'VS'
+raw_vs,VS,USUBJID,Unique Subject Identifier,char,40,Direct Map
+raw_vs,VS,VSSEQ,Sequence Number,num,8,Direct Map
+raw_vs,VS,VSTESTCD,Vital Signs Test Short Name,char,8,Direct Map
+raw_vs,VS,VSORRES,Result or Finding in Original Units,char,40,Direct Map
+raw_vs,VS,VSDTC,Date/Time of Vital Signs,char,20,Direct Map
