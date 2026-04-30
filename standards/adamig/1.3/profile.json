@@ -1,0 +1,16 @@
+{
+  "standard": "ADaMIG",
+  "version": "1.3",
+  "datasets": {
+    "ADSL": {
+      "required_variables": ["STUDYID", "USUBJID", "TRT01A", "SAFFL"]
+    },
+    "ADAE": {
+      "required_variables": ["STUDYID", "USUBJID", "AESEQ", "TRTA", "SAFFL"]
+    }
+  },
+  "notes": [
+    "Starter profile for 1.3. Extend with full metadata constraints."
+  ]
+}
+

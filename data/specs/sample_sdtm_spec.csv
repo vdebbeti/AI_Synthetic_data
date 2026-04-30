@@ -1,0 +1,20 @@
+source,target,variable,label,type,length,logic
+raw_dm,DM,STUDYID,Study Identifier,char,20,Direct Map
+raw_dm,DM,DOMAIN,Domain Abbreviation,char,2,Hardcode 'DM'
+raw_dm,DM,USUBJID,Unique Subject Identifier,char,40,Direct Map
+raw_dm,DM,SUBJID,Subject Identifier for the Study,char,20,Direct Map
+raw_dm,DM,SITEID,Study Site Identifier,char,10,Direct Map
+raw_dm,DM,SEX,Sex,char,1,Direct Map
+raw_dm,DM,RACE,Race,char,40,Direct Map
+raw_dm,DM,BRTHDTC,Date/Time of Birth,char,20,Direct Map
+raw_dm,DM,ARM,Description of Planned Arm,char,20,Direct Map
+raw_dm,DM,RFSTDTC,Subject Reference Start Date/Time,char,20,Map RANDDTC to RFSTDTC
+raw_ae,AE,STUDYID,Study Identifier,char,20,Direct Map
+raw_ae,AE,DOMAIN,Domain Abbreviation,char,2,Hardcode 'AE'
+raw_ae,AE,USUBJID,Unique Subject Identifier,char,40,Direct Map
+raw_ae,AE,AESEQ,Sequence Number,num,8,Direct Map
+raw_ae,AE,AETERM,Reported Term for the Adverse Event,char,200,Direct Map
+raw_ae,AE,AESTDTC,Start Date/Time of Adverse Event,char,20,Direct Map
+raw_ae,AE,AEENDTC,End Date/Time of Adverse Event,char,20,Direct Map
+raw_ae,AE,AESEV,Severity/Intensity,char,20,Direct Map
+raw_ae,AE,AESER,Serious Event,char,1,Direct Map

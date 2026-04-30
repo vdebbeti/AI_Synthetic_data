@@ -1,0 +1,16 @@
+{
+  "standard": "SDTMIG",
+  "version": "3.4",
+  "datasets": {
+    "DM": {
+      "required_variables": ["STUDYID", "USUBJID", "SUBJID", "DOMAIN"]
+    },
+    "AE": {
+      "required_variables": ["STUDYID", "USUBJID", "AESEQ", "AETERM", "AESTDTC"]
+    }
+  },
+  "notes": [
+    "Starter profile for 3.4. Extend with full domain and variable deltas."
+  ]
+}
+

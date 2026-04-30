@@ -1,0 +1,14 @@
+source,target,variable,label,type,length,logic
+DM,ADSL,STUDYID,Study Identifier,char,20,Direct Map
+DM,ADSL,USUBJID,Unique Subject Identifier,char,40,Direct Map
+DM,ADSL,SUBJID,Subject Identifier,char,20,Direct Map
+DM,ADSL,TRT01A,Actual Treatment for Period 01,char,20,Map ARM to TRT01A
+DM,ADSL,SAFFL,Safety Population Flag,char,1,Hardcode 'Y'
+AE,ADAE,STUDYID,Study Identifier,char,20,Direct Map
+AE,ADAE,USUBJID,Unique Subject Identifier,char,40,Direct Map
+AE,ADAE,AESEQ,Sequence Number,num,8,Direct Map
+AE,ADAE,AETERM,Reported Term for the Adverse Event,char,200,Direct Map
+ADSL,ADAE,TRTA,Actual Treatment,char,20,Join ADSL by USUBJID and map TRT01A to TRTA
+ADSL,ADAE,SAFFL,Safety Population Flag,char,1,Join ADSL by USUBJID and map SAFFL
+AE,ADAE,ASTDT,Analysis Start Date,num,8,Map AESTDTC to ASTDT
+AE,ADAE,AENDT,Analysis End Date,num,8,Map AEENDTC to AENDT

@@ -1,0 +1,48 @@
+# SDTM/ADaM Spec Compiler Blueprint
+
+This folder contains a blueprint and starter scaffold for a robust AI-assisted SDTM/ADaM code generation tool.
+
+## Goals
+- Parse mapping specs into a normalized intermediate representation (IR).
+- Validate IR with rule packs (schema + domain semantics).
+- Auto-repair invalid IR with bounded retries.
+- Fall back to deterministic assembly when needed.
+- Render both SAS and R from one shared IR.
+- Evaluate with golden cases (raw input + expected SDTM/ADaM outputs).
+
+## Included Assets
+- Architecture and roadmap: `docs/BLUEPRINT.md`
+- Python package scaffold: `src/sdtm_adam_compiler/`
+- Synthetic CDASH-style raw data: `data/raw/`
+- Mapping specs: `data/specs/`
+- Expected SDTM/ADaM outputs: `data/expected/`
+- Golden case descriptors: `data/golden_cases/`
+- SAS data build script: `scripts/build_sas_datasets.sas`
+- Versioned standards profiles: `standards/sdtmig/*` and `standards/adamig/*`
+
+## Quick Start
+1. Review `docs/BLUEPRINT.md`.
+2. Use `data/golden_cases/case_dm_ae_adsl_adae_v1.json` for first end-to-end tests.
+3. Implement parser and validators in `src/sdtm_adam_compiler/`.
+4. Compare generated outputs against `data/expected/*.csv`.
+
+## Current Runnable Commands
+- Print example IR (from SDTM spec):
+  - `python -m scripts.bootstrap_ir_example`
+- Run golden case evaluation:
+  - `python -c "import sys,json; sys.path.insert(0,'src'); from sdtm_adam_compiler.eval.runner import run_case; print(json.dumps(run_case('data/golden_cases/case_dm_ae_adsl_adae_v1.json'), indent=2))"`
+
+The eval currently executes deterministic spec compilation over CSV raw inputs, then diffs against expected SDTM/ADaM outputs.
+
+## Streamlit App
+- Install deps:
+  - `pip install -r requirements.txt`
+- Run app:
+  - `streamlit run app.py`
+
+The app includes:
+- IG version selectors (`SDTMIG` and `ADaMIG`)
+- Upload spec CSV
+- `Download sample SDTM spec` button
+- `Download sample ADaM spec` button
+- Generated SAS and R code download buttons

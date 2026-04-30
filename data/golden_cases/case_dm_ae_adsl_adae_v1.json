@@ -1,0 +1,23 @@
+{
+  "case_id": "dm_ae_adsl_adae_v1",
+  "description": "Synthetic CDASH-style raw to SDTM DM/AE and ADaM ADSL/ADAE golden case",
+  "raw_inputs": [
+    {"dataset": "raw_dm", "path": "data/raw/raw_dm.csv"},
+    {"dataset": "raw_ae", "path": "data/raw/raw_ae.csv"}
+  ],
+  "spec_inputs": [
+    {"type": "SDTM", "path": "data/specs/sdtm_spec_v1.csv"},
+    {"type": "ADaM", "path": "data/specs/adam_spec_v1.csv"}
+  ],
+  "expected_outputs": [
+    {"dataset": "DM", "path": "data/expected/DM_expected.csv"},
+    {"dataset": "AE", "path": "data/expected/AE_expected.csv"},
+    {"dataset": "ADSL", "path": "data/expected/ADSL_expected.csv"},
+    {"dataset": "ADAE", "path": "data/expected/ADAE_expected.csv"}
+  ],
+  "assertions": {
+    "exact_column_match": true,
+    "exact_row_count_match": true,
+    "null_equals_blank": true
+  }
+}

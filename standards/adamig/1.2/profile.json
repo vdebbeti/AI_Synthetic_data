@@ -1,0 +1,13 @@
+{
+  "standard": "ADaMIG",
+  "version": "1.2",
+  "datasets": {
+    "ADSL": {
+      "required_variables": ["STUDYID", "USUBJID", "TRT01A", "SAFFL"]
+    },
+    "ADAE": {
+      "required_variables": ["STUDYID", "USUBJID", "AESEQ", "TRTA", "SAFFL"]
+    }
+  }
+}
+
