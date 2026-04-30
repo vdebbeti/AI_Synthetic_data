@@ -49,6 +49,9 @@ section[data-testid="stSidebar"] {
   border-right: 1px solid rgba(148, 163, 184, 0.25);
 }
 div[data-testid="stTabs"] button {
+  min-width: 160px !important;
+  width: 160px !important;
+  justify-content: center !important;
   border-radius: 999px !important;
   border: 1px solid rgba(148, 163, 184, 0.25) !important;
   color: #dbeafe !important;
@@ -215,6 +218,9 @@ with tab_compile:
                     st.markdown("### R Code")
                     st.code(r_code, language="r")
                     st.download_button("Download R code", r_code, file_name="generated.R", mime="text/plain", use_container_width=True)
+            except Exception as e:
+                _log_event("compile_failed", {"error": str(e)})
+                st.error(f"Compile failed: {e}")
             finally:
                 if tmp.exists():
                     tmp.unlink()
@@ -236,39 +242,43 @@ with tab_eval:
 
         if run_eval:
             _log_event("eval_started", {"case": selected_case.name, "mode": eval_mode})
-            result = run_case(
-                selected_case,
-                execute_generated_code=(eval_mode == "execute_generated_code"),
-                sas_executable=(sas_executable.strip() or None),
-                rscript_executable=(rscript_executable.strip() or None),
-            )
-            m1, m2, m3 = st.columns(3)
-            m1.metric("Checks", result["total_checks"])
-            m2.metric("Passed", result["passed_checks"])
-            m3.metric("Pass Rate", f"{result['pass_rate']:.1f}%")
-            st.caption(f"Status: {result['status']}")
-            _log_event(
-                "eval_completed",
-                {
-                    "case": selected_case.name,
-                    "status": result["status"],
-                    "pass_rate": result["pass_rate"],
-                    "total_checks": result["total_checks"],
-                },
-            )
+            try:
+                result = run_case(
+                    selected_case,
+                    execute_generated_code=(eval_mode == "execute_generated_code"),
+                    sas_executable=(sas_executable.strip() or None),
+                    rscript_executable=(rscript_executable.strip() or None),
+                )
+                m1, m2, m3 = st.columns(3)
+                m1.metric("Checks", result["total_checks"])
+                m2.metric("Passed", result["passed_checks"])
+                m3.metric("Pass Rate", f"{result['pass_rate']:.1f}%")
+                st.caption(f"Status: {result['status']}")
+                _log_event(
+                    "eval_completed",
+                    {
+                        "case": selected_case.name,
+                        "status": result["status"],
+                        "pass_rate": result["pass_rate"],
+                        "total_checks": result["total_checks"],
+                    },
+                )
 
-            st.markdown("### Dataset Results")
-            for check in result["checks"]:
-                icon = "PASS" if check["ok"] else "FAIL"
-                with st.expander(f"{icon} | {check['spec_type']} | {check['dataset']}"):
-                    st.write(f"Rows actual: {check['row_count_actual']}, expected: {check['row_count_expected']}")
-                    st.write(f"Issue count: {check['issue_count']}")
-                    if check["issues"]:
-                        st.markdown("Issues:")
-                        for issue in check["issues"]:
-                            st.write(f"- {issue}")
-            if result.get("execution_reports"):
-                st.markdown("### Code Execution Reports")
-                for rep in result["execution_reports"]:
-                    with st.expander(f"{rep.get('engine')} | {rep.get('status')}"):
-                        st.json(rep)
+                st.markdown("### Dataset Results")
+                for check in result["checks"]:
+                    icon = "PASS" if check["ok"] else "FAIL"
+                    with st.expander(f"{icon} | {check['spec_type']} | {check['dataset']}"):
+                        st.write(f"Rows actual: {check['row_count_actual']}, expected: {check['row_count_expected']}")
+                        st.write(f"Issue count: {check['issue_count']}")
+                        if check["issues"]:
+                            st.markdown("Issues:")
+                            for issue in check["issues"]:
+                                st.write(f"- {issue}")
+                if result.get("execution_reports"):
+                    st.markdown("### Code Execution Reports")
+                    for rep in result["execution_reports"]:
+                        with st.expander(f"{rep.get('engine')} | {rep.get('status')}"):
+                            st.json(rep)
+            except Exception as e:
+                _log_event("eval_failed", {"case": selected_case.name, "mode": eval_mode, "error": str(e)})
+                st.error(f"Eval failed: {e}")
