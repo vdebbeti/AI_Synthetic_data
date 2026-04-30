@@ -17,6 +17,8 @@ def compare_dataset_rows(
     issues: list[str] = []
     actual_cols = list(actual[0].keys()) if actual else []
     expected_cols = list(expected[0].keys()) if expected else []
+    column_match = actual_cols == expected_cols
+    row_count_match = len(actual) == len(expected)
 
     if exact_column_match and actual_cols != expected_cols:
         issues.append(f"column mismatch: actual={actual_cols} expected={expected_cols}")
@@ -26,6 +28,10 @@ def compare_dataset_rows(
 
     compare_n = min(len(actual), len(expected))
     row_mismatch_count = 0
+    cell_mismatch_count = 0
+    compared_cell_count = 0
+    mismatch_examples: list[dict] = []
+    rows_with_mismatch: set[int] = set()
     for i in range(compare_n):
         a = actual[i]
         e = expected[i]
@@ -33,15 +39,26 @@ def compare_dataset_rows(
         for c in cols:
             av = _norm(a.get(c), null_equals_blank)
             ev = _norm(e.get(c), null_equals_blank)
+            compared_cell_count += 1
             if av != ev:
-                row_mismatch_count += 1
+                cell_mismatch_count += 1
+                rows_with_mismatch.add(i)
                 issues.append(f"row {i + 1}, col {c}: actual='{av}' expected='{ev}'")
-                break
+                if len(mismatch_examples) < 20:
+                    mismatch_examples.append({"row": i + 1, "column": c, "actual": av, "expected": ev})
+
+    row_mismatch_count = len(rows_with_mismatch)
+    matched_cell_count = compared_cell_count - cell_mismatch_count
 
     return {
         "ok": not issues,
         "issue_count": len(issues),
+        "column_match": column_match,
+        "row_count_match": row_count_match,
+        "compared_cell_count": compared_cell_count,
+        "matched_cell_count": matched_cell_count,
+        "cell_mismatch_count": cell_mismatch_count,
         "row_mismatch_count": row_mismatch_count,
         "issues": issues[:50],
+        "mismatch_examples": mismatch_examples,
     }
-

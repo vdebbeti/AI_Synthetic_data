@@ -55,9 +55,16 @@ def run_case(
                     "dataset": dataset,
                     "ok": cmp["ok"],
                     "issue_count": cmp["issue_count"],
+                    "column_match": cmp["column_match"],
+                    "row_count_match": cmp["row_count_match"],
+                    "compared_cell_count": cmp["compared_cell_count"],
+                    "matched_cell_count": cmp["matched_cell_count"],
+                    "cell_mismatch_count": cmp["cell_mismatch_count"],
+                    "row_mismatch_count": cmp["row_mismatch_count"],
                     "row_count_actual": len(actual_rows),
                     "row_count_expected": len(expected_rows),
                     "issues": cmp["issues"],
+                    "mismatch_examples": cmp["mismatch_examples"],
                 }
             )
 

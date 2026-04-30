@@ -347,7 +347,16 @@ with tab_eval:
                     icon = "PASS" if check["ok"] else "FAIL"
                     with st.expander(f"{icon} | {check['spec_type']} | {check['dataset']}"):
                         st.write(f"Rows actual: {check['row_count_actual']}, expected: {check['row_count_expected']}")
+                        st.write(f"Row count match: {check['row_count_match']}")
+                        st.write(f"Column order/content match: {check['column_match']}")
+                        st.write(f"Compared cells: {check['compared_cell_count']}")
+                        st.write(f"Matched cells: {check['matched_cell_count']}")
+                        st.write(f"Cell mismatches: {check['cell_mismatch_count']}")
+                        st.write(f"Rows with any mismatch: {check['row_mismatch_count']}")
                         st.write(f"Issue count: {check['issue_count']}")
+                        if check["mismatch_examples"]:
+                            st.markdown("Mismatch examples:")
+                            st.dataframe(check["mismatch_examples"], use_container_width=True, hide_index=True)
                         if check["issues"]:
                             st.markdown("Issues:")
                             for issue in check["issues"]:
