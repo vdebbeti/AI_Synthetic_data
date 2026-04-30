@@ -1,6 +1,7 @@
 from pathlib import Path
 import sys
 import json
+import uuid
 from dataclasses import asdict
 from datetime import datetime, timezone
 
@@ -17,8 +18,45 @@ from sdtm_adam_compiler.renderers.r_renderer import render_r
 from sdtm_adam_compiler.eval.runner import run_case
 
 
+SPEC_CONFIG = {
+    "SDTM": {
+        "ig_label": "SDTMIG Version",
+        "versions": ["3.3", "3.4"],
+        "sample_path": ROOT / "data" / "specs" / "sample_sdtm_spec.csv",
+        "sample_name": "sample_sdtm_spec.csv",
+        "source_note": "Use CDASH/raw source datasets as inputs.",
+        "output_note": "Generates SDTM domain code such as DM, AE, LB, or VS.",
+    },
+    "ADaM": {
+        "ig_label": "ADaMIG Version",
+        "versions": ["1.2", "1.3"],
+        "sample_path": ROOT / "data" / "specs" / "sample_adam_spec.csv",
+        "sample_name": "sample_adam_spec.csv",
+        "source_note": "Use SDTM datasets as inputs.",
+        "output_note": "Generates ADaM analysis dataset code such as ADSL, ADAE, or ADLB.",
+    },
+}
+
+
 def _read_bytes(path: Path) -> bytes:
     return path.read_bytes()
+
+
+def _render_workflow(spec_type: str) -> None:
+    cfg = SPEC_CONFIG[spec_type]
+    st.markdown("### User Workflow")
+    steps = [
+        ("1", "Choose standard", f"Select {spec_type} and the matching {cfg['ig_label']}."),
+        ("2", "Prepare CSV spec", "Required columns: source, target, variable, logic. Optional: label, type, length."),
+        ("3", "Generate code", "Click the primary Generate SAS and R Code button. This is the main app action."),
+        ("4", "Review outputs", "Inspect validation results, IR, SAS, and R before downloading code."),
+    ]
+    cols = st.columns(4)
+    for col, (num, title, body) in zip(cols, steps):
+        with col:
+            st.markdown(f"**{num}. {title}**")
+            st.caption(body)
+    st.info(f"{cfg['source_note']} {cfg['output_note']}")
 
 
 def _log_event(event: str, details: dict | None = None) -> None:
@@ -83,7 +121,7 @@ div[data-testid="stFileUploader"] {
     unsafe_allow_html=True,
 )
 st.title("AI Synthetic Data Generator")
-st.caption("Version-aware spec validation + dual SAS/R code generation")
+st.caption("Generate validated SAS and R code from SDTM or ADaM mapping specs")
 
 if "session_events" not in st.session_state:
     st.session_state.session_events = []
@@ -91,25 +129,26 @@ if "session_events" not in st.session_state:
 
 with st.sidebar:
     st.header("AI Controls")
-    provider = st.selectbox("Provider", ["OpenAI", "Google Gemini", "Anthropic Claude"], index=0)
-    provider_models = {
-        "OpenAI": ["gpt-4o-mini", "gpt-4o"],
-        "Google Gemini": ["gemini-2.0-flash", "gemini-1.5-pro"],
-        "Anthropic Claude": ["claude-sonnet-4-6", "claude-haiku-4-5-20251001"],
-    }
-    model = st.selectbox("Model", provider_models[provider], index=0)
-    api_key = st.text_input("API Key", type="password")
-    st.markdown("---")
-    parse_temperature = st.slider("Parse Temperature", 0.0, 1.0, 0.4, 0.05)
-    compile_temperature = st.slider("Compile Temperature", 0.0, 1.0, 0.2, 0.05)
-    repair_temperature = st.slider("Repair Temperature", 0.0, 1.0, 0.1, 0.05)
-    repair_retries = st.slider("Auto-repair Retries", 0, 3, 2, 1)
     routing_mode = st.selectbox("Routing Mode", ["deterministic", "llm", "consensus"], index=0)
-    st.markdown("---")
-    st.caption("LLM/repair controls are active for `llm` and `consensus` modes.")
-    st.header("Execution Runtimes")
-    sas_executable = st.text_input("SAS executable path (optional)", value="")
-    rscript_executable = st.text_input("Rscript path (optional)", value="")
+    provider = "OpenAI"
+    model = "gpt-4o-mini"
+    api_key = ""
+    parse_temperature = 0.4
+    compile_temperature = 0.2
+    repair_temperature = 0.1
+    repair_retries = 2
+    if routing_mode == "deterministic":
+        st.caption("Deterministic mode uses the parser and validators only. No API key is needed.")
+    else:
+        st.caption("LLM modes currently support OpenAI only.")
+        st.text_input("Provider", value=provider, disabled=True)
+        model = st.selectbox("Model", ["gpt-4o-mini", "gpt-4o"], index=0)
+        api_key = st.text_input("API Key", type="password")
+        st.markdown("---")
+        parse_temperature = st.slider("Parse Temperature", 0.0, 1.0, parse_temperature, 0.05)
+        compile_temperature = st.slider("Compile Temperature", 0.0, 1.0, compile_temperature, 0.05)
+        repair_temperature = st.slider("Repair Temperature", 0.0, 1.0, repair_temperature, 0.05)
+        repair_retries = st.slider("Auto-repair Retries", 0, 3, repair_retries, 1)
     st.markdown("---")
     st.header("Session Log")
     st.download_button(
@@ -126,42 +165,50 @@ with st.sidebar:
 tab_compile, tab_eval = st.tabs(["Compile", "Eval"])
 
 with tab_compile:
-    left, right = st.columns([1, 1])
+    spec_type = st.radio("Standard", ["SDTM", "ADaM"], horizontal=True, index=0)
+    _render_workflow(spec_type)
+    cfg = SPEC_CONFIG[spec_type]
+
+    left, right = st.columns([0.9, 1.1])
 
     with left:
-        st.subheader("Configuration")
-        spec_type = st.selectbox("Spec Type", ["SDTM", "ADaM"], index=0)
-        sdtm_ver = st.selectbox("SDTMIG Version", ["3.3", "3.4"], index=0)
-        adam_ver = st.selectbox("ADaMIG Version", ["1.2", "1.3"], index=0)
-        standards_version = sdtm_ver if spec_type == "SDTM" else adam_ver
+        st.subheader(f"{spec_type} Setup")
+        standards_version = st.selectbox(cfg["ig_label"], cfg["versions"], index=0)
 
-        st.subheader("Sample Specs")
+        st.subheader(f"{spec_type} Sample")
         st.download_button(
-            "Download sample SDTM spec",
-            data=_read_bytes(ROOT / "data" / "specs" / "sample_sdtm_spec.csv"),
-            file_name="sample_sdtm_spec.csv",
+            f"Download sample {spec_type} spec",
+            data=_read_bytes(cfg["sample_path"]),
+            file_name=cfg["sample_name"],
             mime="text/csv",
             use_container_width=True,
         )
-        st.download_button(
-            "Download sample ADaM spec",
-            data=_read_bytes(ROOT / "data" / "specs" / "sample_adam_spec.csv"),
-            file_name="sample_adam_spec.csv",
-            mime="text/csv",
+        st.markdown("**Spec CSV schema**")
+        st.dataframe(
+            [
+                {"column": "source", "required": "yes", "purpose": "Input dataset name"},
+                {"column": "target", "required": "yes", "purpose": f"Output {spec_type} dataset name"},
+                {"column": "variable", "required": "yes", "purpose": "Target variable name"},
+                {"column": "logic", "required": "yes", "purpose": "Mapping or derivation instruction"},
+                {"column": "label", "required": "no", "purpose": "Variable label"},
+                {"column": "type", "required": "no", "purpose": "char or num"},
+                {"column": "length", "required": "no", "purpose": "Target variable length"},
+            ],
             use_container_width=True,
+            hide_index=True,
         )
 
     with right:
-        st.subheader("Upload and Compile")
-        uploaded = st.file_uploader("Upload spec CSV", type=["csv"])
-        run = st.button("Generate Code", type="primary", use_container_width=True)
+        st.subheader("Generate Code")
+        uploaded = st.file_uploader(f"Upload {spec_type} spec CSV", type=["csv"])
+        run = st.button("Generate SAS and R Code", type="primary", use_container_width=True)
 
     if run:
         if not uploaded:
             st.error("Please upload a spec CSV.")
             _log_event("compile_failed", {"reason": "missing_file"})
         else:
-            tmp = ROOT / "data" / "specs" / "_uploaded_spec.csv"
+            tmp = ROOT / "data" / "specs" / f"_uploaded_spec_{uuid.uuid4().hex}.csv"
             tmp.write_bytes(uploaded.read())
             _log_event("compile_started", {"spec_type": spec_type, "standards_version": standards_version, "mode": routing_mode})
             try:
@@ -227,6 +274,7 @@ with tab_compile:
 
 with tab_eval:
     st.subheader("Golden Case Evaluation")
+    st.caption("Eval compares deterministic compiled rows against checked-in expected datasets. It does not run generated SAS or R code.")
     cases_dir = ROOT / "data" / "golden_cases"
     case_files = sorted([p for p in cases_dir.glob("*.json")])
     if not case_files:
@@ -237,18 +285,12 @@ with tab_eval:
             options=case_files,
             format_func=lambda p: p.name,
         )
-        eval_mode = st.radio("Eval Mode", ["data_only", "execute_generated_code"], horizontal=True)
         run_eval = st.button("Run Eval Case", type="primary", use_container_width=True)
 
         if run_eval:
-            _log_event("eval_started", {"case": selected_case.name, "mode": eval_mode})
+            _log_event("eval_started", {"case": selected_case.name, "mode": "data_only"})
             try:
-                result = run_case(
-                    selected_case,
-                    execute_generated_code=(eval_mode == "execute_generated_code"),
-                    sas_executable=(sas_executable.strip() or None),
-                    rscript_executable=(rscript_executable.strip() or None),
-                )
+                result = run_case(selected_case)
                 m1, m2, m3 = st.columns(3)
                 m1.metric("Checks", result["total_checks"])
                 m2.metric("Passed", result["passed_checks"])
@@ -274,11 +316,6 @@ with tab_eval:
                             st.markdown("Issues:")
                             for issue in check["issues"]:
                                 st.write(f"- {issue}")
-                if result.get("execution_reports"):
-                    st.markdown("### Code Execution Reports")
-                    for rep in result["execution_reports"]:
-                        with st.expander(f"{rep.get('engine')} | {rep.get('status')}"):
-                            st.json(rep)
             except Exception as e:
-                _log_event("eval_failed", {"case": selected_case.name, "mode": eval_mode, "error": str(e)})
+                _log_event("eval_failed", {"case": selected_case.name, "mode": "data_only", "error": str(e)})
                 st.error(f"Eval failed: {e}")
