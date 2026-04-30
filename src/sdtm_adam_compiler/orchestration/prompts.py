@@ -43,6 +43,13 @@ Rules:
 - For logic with "Hardcode", set derivation.kind="hardcode" and expression as literal.
 - For direct map and map-to patterns, use derivation.kind="direct_map" with sources.
 - Keep source_dataset populated for each variable rule.
+- Hardcode string literals MUST be quoted, for example `'AE'` and `'Y'`.
+- Do not emit free-text pseudo-code in derivation.expression.
+- For AE common derivations, use these exact canonical mappings:
+  - `AEDECOD` from `AETERM`: `kind="derive"`, `expression="uppercase_term"`, `sources=["AETERM"]`
+  - `AEDUR` from `AESTDTC` and `AEENDTC`: `kind="date_transform"`, `expression="inclusive_duration_days"`, `sources=["AESTDTC","AEENDTC"]`
+  - `AETOXGR` from `AESEV`: `kind="derive"`, `expression="severity_grade_from_aesev"`, `sources=["AESEV"]`
+  - `AESDTH` from `AESER` and `AESEV`: `kind="conditional"`, `expression="serious_severe_death_flag"`, `sources=["AESER","AESEV"]`
 
 Spec rows:
 {spec_rows}
@@ -65,4 +72,3 @@ Validation issues:
 IR JSON:
 {ir_payload}
 """
-

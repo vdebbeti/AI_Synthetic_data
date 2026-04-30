@@ -1,6 +1,20 @@
 from sdtm_adam_compiler.schemas.ir_schema import CompilerIR
 
 
+def _is_quoted(text: str) -> bool:
+    s = (text or "").strip()
+    return len(s) >= 2 and ((s[0] == "'" and s[-1] == "'") or (s[0] == '"' and s[-1] == '"'))
+
+
+def _coerce_sas_hardcode(expr: str, target_type: str) -> str:
+    value = (expr or "").strip()
+    if not value:
+        return "''"
+    if (target_type or "").lower() == "char" and not _is_quoted(value):
+        return f"'{value}'"
+    return value
+
+
 def render_sas(ir: CompilerIR) -> str:
     lines = [
         "/* Auto-generated SAS program from CompilerIR */",
@@ -14,7 +28,7 @@ def render_sas(ir: CompilerIR) -> str:
         lines.append(f"  set {src};")
         for vr in ds.variable_rules:
             if vr.derivation and vr.derivation.kind == "hardcode":
-                lines.append(f"  {vr.target_variable} = {vr.derivation.expression};")
+                lines.append(f"  {vr.target_variable} = {_coerce_sas_hardcode(vr.derivation.expression, vr.target_type)};")
             elif vr.derivation and vr.derivation.kind == "direct_map" and vr.derivation.sources:
                 lines.append(f"  {vr.target_variable} = {vr.derivation.sources[0]};")
             elif vr.derivation and vr.derivation.expression == "severity_grade_from_aesev":
