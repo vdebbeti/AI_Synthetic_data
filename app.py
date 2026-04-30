@@ -31,7 +31,7 @@ def _log_event(event: str, details: dict | None = None) -> None:
     )
 
 
-st.set_page_config(page_title="SDTM/ADaM Spec Compiler", layout="wide")
+st.set_page_config(page_title="AI Synthetic Data Generator", layout="wide")
 st.markdown(
     """
 <style>
@@ -79,7 +79,7 @@ div[data-testid="stFileUploader"] {
 """,
     unsafe_allow_html=True,
 )
-st.title("SDTM/ADaM Spec Compiler")
+st.title("AI Synthetic Data Generator")
 st.caption("Version-aware spec validation + dual SAS/R code generation")
 
 if "session_events" not in st.session_state:
