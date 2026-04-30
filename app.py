@@ -89,7 +89,12 @@ if "session_events" not in st.session_state:
 with st.sidebar:
     st.header("AI Controls")
     provider = st.selectbox("Provider", ["OpenAI", "Google Gemini", "Anthropic Claude"], index=0)
-    model = st.text_input("Model", value="gpt-4o-mini")
+    provider_models = {
+        "OpenAI": ["gpt-4o-mini", "gpt-4o"],
+        "Google Gemini": ["gemini-2.0-flash", "gemini-1.5-pro"],
+        "Anthropic Claude": ["claude-sonnet-4-6", "claude-haiku-4-5-20251001"],
+    }
+    model = st.selectbox("Model", provider_models[provider], index=0)
     api_key = st.text_input("API Key", type="password")
     st.markdown("---")
     parse_temperature = st.slider("Parse Temperature", 0.0, 1.0, 0.4, 0.05)
